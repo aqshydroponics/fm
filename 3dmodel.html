@@ -1,0 +1,75 @@
+<!-- 3D Section -->
+<section class="threeD-section">
+    <h2 class="section-title">3D Showcase</h2>
+    <div class="threeD-container">
+
+        <!-- 3D Card for Photo -->
+        <div class="threeD-card">
+            <h3>Hydroponics Photo</h3>
+            <img src="your-photo.jpg" alt="Hydroponics 3D Photo">
+        </div>
+
+        <!-- 3D Card for Video -->
+        <div class="threeD-card">
+            <h3>Hydroponics Video</h3>
+            <video controls>
+                <source src="your-video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+    </div>
+</section>
+
+<style>
+/* 3D Section Styling */
+.threeD-section {
+    padding: 60px 20px;
+    background: #f7f7f7;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: #2a4827;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Container to hold the cards */
+.threeD-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    perspective: 1000px; /* adds 3D depth */
+}
+
+/* Each 3D Card */
+.threeD-card {
+    background: white;
+    width: 350px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.threeD-card:hover {
+    transform: rotateY(10deg) rotateX(5deg) scale(1.03);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+.threeD-card h3 {
+    margin-bottom: 15px;
+    color: #2a4827;
+}
+
+.threeD-card img,
+.threeD-card video {
+    width: 100%;
+    border-radius: 8px;
+}
+</style>

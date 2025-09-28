@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIY Hydroponics with Image Sliders</title>
+    <style>
+        body {
+            font-family: Serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5dc !important;
+            color: #2e5d47;
+        }
+
+        .header {
+            background-color: #2e5d47;
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            width: 80%;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #f5f5dc, #d9e4cc);
+        }
+
+        .section h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .text {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* Slider Styles */
+        .slider {
+            position: relative;
+            max-width: 500px;
+            margin: auto;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slides img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .prev,
+        .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">DIY Hydroponics</div>
+
+    <!-- Step 1 -->
+    <div class="section">
+        <h2>Step 1: Arrange Net Cups</h2>
+        <div class="text">
+            <p>Space the net cups according to the mature size of the plants you intend to grow. Mark the position on
+                the lid using a pencil.</p>
+        </div>
+        <div class="slider" id="slider1">
+            <div class="slides">
+                <img src="D:\HHH.html\1.1.jpg" alt="Arrange Net Cups 1">
+                <img src="D:\HHH.html\1.2.jpg" alt="Arrange Net Cups 2">
+                <img src="D:\HHH.html\1.2.jpg" alt="Arrange Net Cups 3">
+            </div>
+            <button class="prev" onclick="moveSlide('slider1', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider1', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="section">
+        <h2>Step 2: Drill Holes in Lid</h2>
+        <div class="text">
+            <p>Slide a scrap piece of wood beneath the lid and use a drill fitted with a hole saw bit to carefully drill
+                out the holes for the net cups.</p>
+            <p><strong>Pro Safety Tip:</strong> When drilling plastic with a hole saw bit, the slower the bit speed the
+                better.</p>
+        </div>
+        <div class="slider" id="slider2">
+            <div class="slides">
+                <img src="D:\HHH.html\2.1.jpg" alt="Drill Holes 1">
+                <img src="D:\HHH.html\2.2.jpg" alt="Drill Holes 2">
+                <img src="D:\HHH.html\2.3.jpg" alt="Drill Holes 3">
+            </div>
+            <button class="prev" onclick="moveSlide('slider2', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider2', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="section">
+        <h2>Step 3: Clean Up the Holes</h2>
+        <div class="text">
+            <p>Use a utility knife to carefully cut away any stray plastic pieces, then sand away the remainder.</p>
+        </div>
+        <div class="slider" id="slider3">
+            <div class="slides">
+                <img src="D:\HHH.html\3.1.jpg" alt="Clean Holes 1">
+                <img src="D:\HHH.html\3.2.jpg" alt="Clean Holes 2">
+            </div>
+            <button class="prev" onclick="moveSlide('slider3', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider3', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="section">
+        <h2>Step 4: Install Air Pump</h2>
+        <div class="text">
+            <p>Drill a hole in the top of the lid with a bit that matches the size of your air pump’s hose. Slide the
+                hose through and attach the airstone.</p>
+        </div>
+        <div class="slider" id="slider4">
+            <div class="slides">
+                <img src="D:\HHH.html\4.1.jpg"alt="Air Pump 1">
+                <img src="D:\HHH.html\4.2.jpg" alt="Air Pump 2">
+                <img src="D:\HHH.html\4.3.jpg" alt="Air Pump 3">
+                <img src="D:\HHH.html\4.4.jpg" alt="Air Pump 4">
+              
+            </div>
+            <button class="prev" onclick="moveSlide('slider4', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider4', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="section">
+        <h2>Step 5: Fill Container With Nutrient-Rich Water</h2>
+        <div class="text">
+            <p>Fill the container with water and add the nutrients following the manufacturer’s instructions. Turn the
+                pump on to begin oxygenating the water.</p>
+        </div>
+        <div class="slider" id="slider5">
+            <div class="slides">
+                <img src="D:\HHH.html\5.1.jpg" alt="Nutrients 1">
+                <img src="D:\HHH.html\5.2.jpg"alt="Nutrients 2">
+            </div>
+            <button class="prev" onclick="moveSlide('slider5', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider5', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="section">
+        <h2>Step 6: Add Plants</h2>
+        <div class="text">
+            <p>Place your plants in the net cups and slide them into the holes cut in the lid.</p>
+        </div>
+        <div class="slider" id="slider6">
+            <div class="slides">
+                <img src="D:\HHH.html\6.1.jpg" alt="Add Plants">
+            </div>
+            <button class="prev" onclick="moveSlide('slider6', -1)">❮</button>
+            <button class="next" onclick="moveSlide('slider6', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Tips Section -->
+    <div class="section">
+        <h2>Tips for Successful Hydroponic Gardening</h2>
+        <div class="text">
+            <p><strong>Maintain the Proper pH:</strong> The water's pH should be kept between 5.5 and 6.5 for plants to
+                absorb nutrients properly.</p>
+            <p><strong>Use Empty Water:</strong> Hydroponic nutrients work best in water with very few minerals (close
+                to 0 ppm). Distilled, reverse osmosis, or captured rainwater are ideal.</p>
+            <p><strong>Regularly Change the Nutrient Solution:</strong> Replace the nutrient solution weekly or
+                bi-weekly. Always drain and clean the reservoir instead of just topping it up.</p>
+            <p><strong>Give Your Plants Plenty of Light:</strong> Provide natural light or grow lights for best growth
+                results.</p>
+            <p><strong>Tailor Nutrients to Plants:</strong> Use more nitrogen in vegetative stages, more phosphorus and
+                potassium in flowering/fruiting. Large fruiting plants may also need extra calcium and magnesium.</p>
+        </div>
+        <div class="slider" id="sliderTips">
+            
+            <button class="prev" onclick="moveSlide('sliderTips', -1)">❮</button>
+            <button class="next" onclick="moveSlide('sliderTips', 1)">❯</button>
+        </div>
+    </div>
+
+    <script>
+        const positions = {};
+
+        function moveSlide(sliderId, step) {
+            const slider = document.querySelector(`#${sliderId} .slides`);
+            const images = slider.querySelectorAll("img");
+            if (!positions[sliderId]) positions[sliderId] = 0;
+            positions[sliderId] = (positions[sliderId] + step + images.length) % images.length;
+            slider.style.transform = `translateX(-${positions[sliderId] * 100}%)`;
+        }
+    </script>
+
+</body>
+
+</html>

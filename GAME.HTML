@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EcoHarvest — Hydroponics Simulator</title>
+    <!-- Minimal reset -->
+    <style>
+        :root {
+            --bg: #0f1720;
+            --panel: #0f1720;
+            --muted: #9aa8b2;
+            --accent: #6ee7b7;
+            --accent-2: #7dd3fc;
+            --card: #0b1320;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-2: rgba(255, 255, 255, 0.02);
+            --success: #32d583;
+            --danger: #ff7b7b;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background:
+                radial-gradient(1200px 600px at 10% 10%, rgba(45, 68, 85, 0.18), transparent),
+                linear-gradient(180deg, #071021 0%, #081426 60%, #05101a 100%);
+            color: #e6eef6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 360px 1fr 340px;
+            gap: 18px;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        @media (max-width:1100px) {
+            .app {
+                grid-template-columns: 1fr;
+                grid-auto-rows: auto;
+                padding: 12px;
+            }
+
+            .left,
+            .right {
+                order: 2;
+            }
+
+            .center {
+                order: 1;
+            }
+        }
+
+        /* Left panel */
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 6px 20px rgba(2, 8, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 9px;
+            background:
+                linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #062226;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: 600
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px
+        }
+
+        .stat {
+            background: var(--glass);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px
+        }
+
+        .meter {
+            height: 8px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.04);
+            overflow: hidden
+        }
+
+        .meter>i {
+            height: 100%;
+            display: block;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        }
+
+        /* Center: game canvas / farm */
+        .center {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .farm {
+            flex: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            padding: 18px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            gap: 12px;
+        }
+
+        .view {
+            flex: 1;
+            position: relative;
+            background:
+                linear-gradient(180deg, #061017 0%, #07121a 100%);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 -40px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Isometric table */
+        .table {
+            width: 900px;
+            max-width: calc(100% - 40px);
+            height: 420px;
+            position: relative;
+            transform: translateZ(0);
+        }
+
+        .slot {
+            position: absolute;
+            width: 110px;
+            height: 90px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: transform .2s, box-shadow .2s;
+            box-shadow: 0 6px 18px rgba(4, 12, 20, 0.6);
+        }
+
+        .slot:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 14px 28px rgba(2, 8, 15, 0.6)
+        }
+
+        .plant {
+            width: 84px;
+            height: 64px;
+            position: relative;
+            overflow: visible;
+        }
+
+        .plant .stage {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 6px;
+            transition: all .6s ease;
+        }
+
+        .plant .leaf {
+            display: block;
+            width: 36px;
+            height: 18px;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #2e9b6a, #74d9aa);
+            transform-origin: center;
+            opacity: 0.98;
+        }
+
+        .plant .stem {
+            width: 12px;
+            height: 28px;
+            background: linear-gradient(180deg, #2b6d4a, #164a34);
+            border-radius: 8px;
+            margin: 0 auto
+        }
+
+        .hud {
+            position: absolute;
+            left: 14px;
+            bottom: 14px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(255, 255, 255, 0.02));
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.03)
+        }
+
+        /* Right panel: shop / inventory */
+        .shop-list {
+            display: grid;
+            gap: 10px
+        }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--glass-2);
+            border: 1px solid rgba(255, 255, 255, 0.02)
+        }
+
+        button.btn {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            border: none;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: #062226;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        .control {
+            background: var(--glass);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04)
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px
+        }
+
+        /* Achievements */
+        .ach {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .ach .a {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        footer {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 8px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- LEFT -->
+        <div class="panel left">
+            <div class="header">
+                <div class="logo">FM</div>
+                <div>
+                    <div class="title">EcoHarvest — Hydro Game</div>
+                    <div class="subtitle">Advanced hydroponic simulator</div>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div style="display:flex;justify-content:space-between"><strong>$<span
+                                id="money">120</span></strong><span class="small">Balance</span></div>
+                    <div class="meter" style="margin-top:8px"><i id="moneyMeter" style="width:40%"></i></div>
+                </div>
+                <div class="stat">
+                    <div style="display:flex;justify-content:space-between"><strong>Day <span
+                                id="day">1</span></strong><span class="small">Cycle</span></div>
+                    <div class="meter" style="margin-top:8px"><i id="dayMeter" style="width:10%"></i></div>
+                </div>
+                <div class="stat">
+                    <div class="small">Water</div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                        <div class="meter" style="flex:1"><i id="waterMeter" style="width:80%"></i></div>
+                        <div class="small" id="waterCnt">80%</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="small">Nutrients</div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                        <div class="meter" style="flex:1"><i id="nutrMeter" style="width:60%"></i></div>
+                        <div class="small" id="nutCnt">60%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px">
+                <div class="small">pH level</div>
+                <input id="ph" type="range" min="4" max="8" step="0.1" value="6.5" style="width:100%">
+                <div style="display:flex;justify-content:space-between;margin-top:6px">
+                    <div class="small">pH: <strong id="phVal">6.5</strong></div>
+                    <div class="small">Light: <strong id="lightState">Day</strong></div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px">
+                <div class="small">Status</div>
+                <div class="hint" id="statusHint">Welcome! Click a slot in the center to plant.</div>
+            </div>
+
+            <div style="margin-top:12px">
+                <div class="small">Quests</div>
+                <div class="panel" style="margin-top:8px;padding:8px;background:var(--glass);font-size:13px">
+                    <div id="questText">Harvest 3 lettuce to earn $30</div>
+                    <div style="margin-top:8px"><button id="claimBtn" class="btn" disabled>Claim</button></div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px">
+                <div class="small">Achievements</div>
+                <div class="ach" id="achList">
+                    <div class="a">Rookie Grower</div>
+                </div>
+            </div>
+
+            <footer>
+                Build something real. Grow with science.
+            </footer>
+        </div>
+
+        <!-- CENTER -->
+        <div class="center">
+            <div class="farm panel">
+                <div class="view">
+                    <div class="table" id="table">
+                        <!-- Slots will be injected by JS -->
+                    </div>
+                    <div class="hud" id="hud" style="display:none"></div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px">
+                <div class="panel" style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div><strong>Controls</strong>
+                            <div class="small">Manage your system</div>
+                        </div>
+                        <div class="small">Autosave ✓</div>
+                    </div>
+                    <div class="controls">
+                        <div class="control">Pump: <span id="pumpLvl">1</span></div>
+                        <div class="control">Reservoir: <span id="resTxt">Stable</span></div>
+                        <div class="control">PH adjuster ready</div>
+                        <div class="control">Seeds planted: <span id="plantedCount">0</span></div>
+                    </div>
+                    <div style="margin-top:10px" class="small">Tip: keep pH between 5.8–6.5 for most greens. Low
+                        nutrients = slow growth.</div>
+                </div>
+
+                <div class="panel" style="width:320px">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div><strong>System Log</strong></div>
+                        <div class="small">Live</div>
+                    </div>
+                    <div id="log" style="margin-top:10px;height:86px;overflow:auto;font-size:13px;color:var(--muted)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="panel right">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div><strong>Shop</strong>
+                    <div class="small">Buy seeds, nutrient packs, upgrades</div>
+                </div>
+                <div class="small">Market</div>
+            </div>
+
+            <div style="margin-top:10px" class="shop-list" id="shop">
+                <!-- shop items -->
+            </div>
+
+            <div style="margin-top:12px">
+                <strong>Inventory</strong>
+                <div id="inv" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+            </div>
+
+            <div style="margin-top:12px">
+                <strong>Upgrades</strong>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button class="btn" id="upPump">Upgrade Pump ($80)</button>
+                    <button class="btn" id="upRes">Bigger Tank ($100)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Small template for slot/plant visuals -->
+    <svg id="plantTemplate" width="0" height="0" style="position:absolute">
+        <defs>
+            <g id="plant1">
+                <rect width="100" height="60" rx="8" fill="transparent"></rect>
+            </g>
+        </defs>
+    </svg>
+
+    <script>
+        /* ------------------------------
+           Game data & initial settings
+           ------------------------------ */
+        const game = {
+            money: 120,
+            day: 1,
+            dayTime: 0, // 0..100 percent (cycle)
+            water: 80, // percent
+            nutrients: 60,
+            ph: 6.5,
+            pumpLevel: 1,
+            tankSize: 100, // water cap percent representation
+            slots: [], // will hold 8-12 slots
+            plantsDef: {
+                'lettuce': { name: 'Lettuce', growTime: 60, sell: 12, stages: 5, idealPH: [5.5, 6.5], nutrientUsage: 1.0 },
+                'basil': { name: 'Basil', growTime: 90, sell: 18, stages: 5, idealPH: [5.8, 6.5], nutrientUsage: 1.2 },
+                'tomato': { name: 'Tomato', growTime: 160, sell: 45, stages: 6, idealPH: [5.6, 6.8], nutrientUsage: 1.6 },
+            },
+            inventory: { seeds: { lettuce: 3, basil: 1, tomato: 0 }, items: { nutrient: 1 } },
+            quests: { current: { goal: { type: 'harvest', seed: 'lettuce', count: 3 }, progress: 0, reward: 30 } },
+            achievements: ['Rookie Grower'],
+            settings: { autosave: true, tickInterval: 1 }, // seconds
+        };
+
+        /* ------------------------------
+           Slots layout generator
+           ------------------------------ */
+        function createSlots() {
+            const table = document.getElementById('table');
+            table.innerHTML = '';
+            const layout = [];
+            // arrange slots in a staggered, professional layout (3 rows)
+            const rows = [
+                { y: 12, cols: 4, xOff: 18 },
+                { y: 138, cols: 5, xOff: 10 },
+                { y: 260, cols: 4, xOff: 18 }
+            ];
+            let id = 0;
+            rows.forEach((row, r) => {
+                for (let c = 0; c < row.cols; c++) {
+                    id++;
+                    const x = row.xOff + c * (115) + (r === 1 ? 55 : 0);
+                    const y = row.y;
+                    const el = document.createElement('div');
+                    el.className = 'slot';
+                    el.style.left = x + 'px';
+                    el.style.top = y + 'px';
+                    el.dataset.slot = id;
+                    el.innerHTML = `<div style="font-size:12px;color:var(--muted)">Slot ${id}</div>
+                      <div class="plant" data-empty="true"></div>`;
+                    table.appendChild(el);
+                    game.slots.push({ id: id, el: el, plant: null });
+                    // click handler
+                    el.addEventListener('click', () => onSlotClick(id));
+                }
+            });
+        }
+
+        /* ------------------------------
+           UI helpers & render
+           ------------------------------ */
+        function $id(q) { return document.getElementById(q) }
+        function renderUI() {
+            $id('money').innerText = game.money;
+            $id('moneyMeter').style.width = Math.min(100, game.money / 2) + '%';
+            $id('waterMeter').style.width = game.water + '%';
+            $id('nutrMeter').style.width = game.nutrients + '%';
+            $id('waterCnt').innerText = Math.round(game.water) + '%';
+            $id('nutCnt').innerText = Math.round(game.nutrients) + '%';
+            $id('phVal').innerText = parseFloat(game.ph).toFixed(1);
+            $id('day').innerText = game.day;
+            $id('dayMeter').style.width = Math.min(100, game.dayTime) + '%';
+            $id('lightState').innerText = game.dayTime < 50 ? 'Day' : 'Night';
+            $id('pumpLvl').innerText = game.pumpLevel;
+            $id('plantedCount').innerText = game.slots.filter(s => s.plant).length;
+            $id('resTxt').innerText = game.tankSize > 150 ? 'Large' : (game.tankSize > 100 ? 'Medium' : 'Small');
+            $id('inv').innerHTML = '';
+            // inventory UI
+            for (const s in game.inventory.seeds) {
+                const count = game.inventory.seeds[s] || 0;
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.innerHTML = `<div>${game.plantsDef[s].name} seeds <div class="small">x${count}</div></div>
+                      <div><button class="btn" data-buy="${s}">Plant</button></div>`;
+                $id('inv').appendChild(item);
+                item.querySelector('[data-buy]').addEventListener('click', () => plantFromInv(s));
+            }
+            // shop
+            const shop = $id('shop');
+            shop.innerHTML = '';
+            const store = [
+                { id: 'lettuceS', name: 'Lettuce seeds (x3)', seed: 'lettuce', price: 12, qty: 3 },
+                { id: 'basilS', name: 'Basil seeds (x2)', seed: 'basil', price: 22, qty: 2 },
+                { id: 'nut', name: 'Nutrient pack', price: 30, give: { nutrient: 1 } },
+                { id: 'seedpack', name: 'Surprise Seed Box', price: 45, give: { seeds: { lettuce: 1, basil: 1 } } },
+            ];
+            store.forEach(it => {
+                const el = document.createElement('div'); el.className = 'shop-item';
+                el.innerHTML = `<div><strong>${it.name}</strong><div class="small">$${it.price}</div></div>
+                    <div><button class="btn" data-shop="${it.id}">Buy</button></div>`;
+                shop.appendChild(el);
+                el.querySelector('[data-shop]').addEventListener('click', () => buyItem(it));
+            });
+            // quests
+            $id('questText').innerText = Harvest ${ game.quests.current.goal.count } ${ game.plantsDef[game.quests.current.goal.seed].name } to earn $${ game.quests.current.reward };
+            $id('claimBtn').disabled = game.quests.current.progress < game.quests.current.goal.count;
+            // achievements
+            const aList = $id('achList'); aList.innerHTML = '';
+            game.achievements.forEach(a => {
+                const d = document.createElement('div'); d.className = 'a'; d.innerText = a; aList.appendChild(d);
+            });
+        }
+
+        /* ------------------------------
+           Planting & slot interactions
+           ------------------------------ */
+        function onSlotClick(id) {
+            const slot = game.slots.find(s => s.id == id);
+            if (!slot) return;
+            if (slot.plant) {
+                // show plant details & quick actions
+                showHud(slot);
+            } else {
+                // open quick plant menu (choose seed)
+                if (totalSeedCount() === 0) {
+                    pushLog('No seeds in inventory. Buy seeds in the shop.');
+                    $id('statusHint').innerText = 'No seeds available — open Shop to buy.';
+                    return;
+                }
+                // choose best seed automatically (smart choice) — prefer lettuce if goal requires it
+                let chosen = chooseSeedAuto();
+                plantSeed(slot.id, chosen);
+            }
+        }
+
+        function chooseSeedAuto() {
+            // if quest demand is lettuce and we still need more -> choose lettuce if exists
+            const q = game.quests.current;
+            if (q && game.inventory.seeds[q.goal.seed] > 0) return q.goal.seed;
+            // otherwise pick highest count or fastest growth for quick income
+            const seeds = Object.keys(game.inventory.seeds).filter(s => game.inventory.seeds[s] > 0);
+            if (seeds.length === 0) return null;
+            seeds.sort((a, b) => (game.inventory.seeds[b] - game.inventory.seeds[a]));
+            return seeds[0];
+        }
+
+        function totalSeedCount() { return Object.values(game.inventory.seeds).reduce((a, b) => a + (b || 0), 0); }
+
+        function plantFromInv(seed) {
+            const empty = game.slots.find(s => !s.plant);
+            if (!empty) { pushLog('No empty slot to plant.'); return; }
+            if ((game.inventory.seeds[seed] || 0) <= 0) { pushLog('You do not have that seed.'); return; }
+            plantSeed(empty.id, seed);
+        }
+
+        function plantSeed(slotId, seedKey) {
+            const def = game.plantsDef[seedKey];
+            if (!def) { pushLog('Seed type unknown.'); return; }
+            const slot = game.slots.find(s => s.id == slotId);
+            slot.plant = {
+                seed: seedKey,
+                age: 0,
+                stage: 0,
+                plantedAt: Date.now(),
+                lastTick: Date.now(),
+                health: 100,
+                growTime: def.growTime, // seconds to mature
+            };
+            // remove seed from inventory
+            game.inventory.seeds[seedKey] = (game.inventory.seeds[seedKey] || 0) - 1;
+            renderPlantVisual(slot);
+            pushLog(Planted ${ def.name } in slot ${ slotId }.);
+            renderUI();
+        }
+
+        /* ------------------------------
+           Visual rendering for plants
+           ------------------------------ */
+        function renderPlantVisual(slot) {
+            const el = slot.el.querySelector('.plant');
+            el.innerHTML = '';
+            if (!slot.plant) {
+                el.setAttribute('data-empty', 'true');
+                return;
+            }
+            el.removeAttribute('data-empty');
+            const p = slot.plant;
+            const s = game.plantsDef[p.seed];
+            // compute stage based on age/growTime
+            const percent = Math.min(1, p.age / p.growTime);
+            const stage = Math.floor(percent * (s.stages - 1));
+            p.stage = stage;
+            // create leaves/stem proportional to stage
+            const frag = document.createDocumentFragment();
+            const stageWrap = document.createElement('div');
+            stageWrap.className = 'stage';
+            stageWrap.style.bottom = (10 + stage * 6) + 'px';
+            // stem
+            const stem = document.createElement('div'); stem.className = 'stem'; stem.style.height = (12 + stage * 10) + 'px';
+            stageWrap.appendChild(stem);
+            // leaves: add left & right leaves
+            for (let i = 0; i < Math.min(4, 1 + stage); i++) {
+                const leaf = document.createElement('div'); leaf.className = 'leaf';
+                leaf.style.width = (18 + i * 10) + 'px';
+                leaf.style.height = (8 + i * 4) + 'px';
+                leaf.style.transform = translateY(${- (i * 6)}px) rotate(${ i% 2 ? -18 : 18}deg);
+        leaf.style.opacity = 0.85;
+        stageWrap.appendChild(leaf);
+  }
+        // If mature, show fruit/bloom
+        if (percent >= 0.95) {
+            const fruit = document.createElement('div');
+            fruit.style.width = '24px'; fruit.style.height = '24px'; fruit.style.borderRadius = '18px';
+            fruit.style.background = 'linear-gradient(180deg,#ffe29f,#ffb347)';
+            fruit.style.position = 'absolute'; fruit.style.left = '50%'; fruit.style.transform = 'translateX(-50%)';
+            fruit.style.bottom = '28px';
+            stageWrap.appendChild(fruit);
+        }
+        frag.appendChild(stageWrap);
+        el.appendChild(frag);
+}
+
+        /* ------------------------------
+           Core tick — game simulation
+           ------------------------------ */
+        let tickIntervalHandler = null;
+        function startTick() {
+            if (tickIntervalHandler) clearInterval(tickIntervalHandler);
+            tickIntervalHandler = setInterval(gameTick, game.settings.tickInterval * 1000);
+        }
+
+        function gameTick() {
+            // advance day time
+            game.dayTime += (game.pumpLevel * 0.2); // pump slightly accelerates cycle
+            if (game.dayTime >= 100) { game.dayTime = 0; game.day++; onNewDay(); }
+
+            // resource consumption
+            const planted = game.slots.filter(s => s.plant);
+            const totalUsage = planted.length * 0.15 * (1 + (game.plantStressFactor || 0));
+            game.water = Math.max(0, game.water - totalUsage * (1 / game.pumpLevel));
+            // nutrients degrade slowly
+            game.nutrients = Math.max(0, game.nutrients - planted.length * 0.02);
+
+            // per-plant growth
+            planted.forEach(slot => {
+                const p = slot.plant;
+                // apply environment modifiers
+                const def = game.plantsDef[p.seed];
+                // pH effect
+                const ph = game.ph;
+                const phFactor = (ph >= def.idealPH[0] && ph <= def.idealPH[1]) ? 1.0 : 0.6;
+                // nutrients effect
+                const nutrFactor = game.nutrients > 20 ? 1.0 : 0.5;
+                // water shortage effect reduces growth and health
+                if (game.water < 10) { p.health -= 1.5; }
+                // updates
+                const growthPerTick = (game.settings.tickInterval) * (1 / def.growTime) * 100 * phFactor * nutrFactor;
+                p.age += (growthPerTick * (1 + game.pumpLevel * 0.02));
+                // health decay for bad pH
+                if (phFactor < 1) p.health -= 0.5;
+                p.health = Math.max(0, Math.min(100, p.health));
+                // render
+                renderPlantVisual(slot);
+                // check for mature
+                if (p.age >= p.growTime && !p.matureNoted) {
+                    p.matureNoted = true;
+                    pushLog(${ game.plantsDef[p.seed].name } is ready for harvest in a slot.);
+            // auto notification: highlight slot
+            slot.el.style.boxShadow = '0 18px 36px rgba(45,200,160,0.08)';
+        }
+  });
+
+        // Auto-sell if user enabled? (not now)
+        // Update quest progress if harvested or sold (handled elsewhere)
+        saveIfNeeded();
+        renderUI();
+}
+
+        /* ------------------------------
+           Harvest & sell
+           ------------------------------ */
+        function harvestSlot(slotId) {
+            const slot = game.slots.find(s => s.id == slotId);
+            if (!slot || !slot.plant) return;
+            const p = slot.plant;
+            const def = game.plantsDef[p.seed];
+            if (p.age < p.growTime) {
+                pushLog('Plant is not mature yet.');
+                return;
+            }
+            // determine yield / price modifiers
+            const healthFactor = Math.max(0.4, p.health / 100);
+            const price = Math.round(def.sell * healthFactor);
+            game.money += price;
+            pushLog(Harvested ${ def.name }(+$${ price }).);
+            // achievements & quest updates
+            if (game.quests.current && game.quests.current.goal.type === 'harvest' && game.quests.current.goal.seed === p.seed) {
+                game.quests.current.progress++;
+                pushLog(Quest progress ${ game.quests.current.progress } / ${ game.quests.current.goal.count });
+            }
+            // clear slot
+            slot.plant = null;
+            renderPlantVisual(slot);
+            renderUI();
+        }
+
+        /* ------------------------------
+           Shop, buy, upgrades
+           ------------------------------ */
+        function buyItem(it) {
+            if (game.money < it.price) { pushLog('Not enough money.'); return; }
+            game.money -= it.price;
+            if (it.seed) {
+                game.inventory.seeds[it.seed] = (game.inventory.seeds[it.seed] || 0) + it.qty;
+                pushLog(Bought ${ it.qty } ${ game.plantsDef[it.seed].name } seeds.);
+            } else if (it.give) {
+                if (it.give.nutrient) game.inventory.items.nutrient = (game.inventory.items.nutrient || 0) + it.give.nutrient;
+                if (it.give.seeds) {
+                    for (const s in it.give.seeds) game.inventory.seeds[s] = (game.inventory.seeds[s] || 0) + it.give.seeds[s];
+                }
+                pushLog('Bought pack.');
+            } else {
+                pushLog('Purchase complete.');
+            }
+            renderUI();
+        }
+
+        $id('upPump').addEventListener('click', () => {
+            const cost = 80 * game.pumpLevel;
+            if (game.money < cost) { pushLog('Not enough money to upgrade pump.'); return; }
+            game.money -= cost;
+            game.pumpLevel++;
+            pushLog(Pump upgraded to ${ game.pumpLevel });
+            renderUI();
+        });
+        $id('upRes').addEventListener('click', () => {
+            const cost = 100;
+            if (game.money < cost) { pushLog('Not enough for tank upgrade.'); return; }
+            game.money -= cost;
+            game.tankSize += 60;
+            pushLog('Tank capacity increased.');
+            renderUI();
+        });
+
+        /* ------------------------------
+           System actions
+           ------------------------------ */
+        function addNutrient() {
+            if (game.inventory.items.nutrient > 0) {
+                game.inventory.items.nutrient--;
+                game.nutrients = Math.min(100, game.nutrients + 40);
+                pushLog('Added nutrient pack.');
+                renderUI();
+            } else {
+                pushLog('No nutrient packs. Buy one.');
+            }
+        }
+
+        function refillWater() {
+            const fill = Math.min(100, game.tankSize) - game.water;
+            if (fill <= 0) { pushLog('Tank already full.'); return; }
+            // cost to refill scaled small
+            const cost = Math.round(fill * 0.2);
+            if (game.money < cost) { pushLog('Not enough money to refill water.'); return; }
+            game.money -= cost;
+            game.water = Math.min(100, game.water + fill);
+            pushLog(Refilled water(-$${ cost }));
+            renderUI();
+        }
+
+        /* ------------------------------
+           HUD show for slot
+           ------------------------------ */
+        function showHud(slot) {
+            const hud = $id('hud');
+            if (!slot.plant) { hud.style.display = 'none'; return; }
+            const p = slot.plant;
+            const def = game.plantsDef[p.seed];
+            hud.style.display = 'block';
+            hud.style.left = (slot.el.offsetLeft + 10) + 'px';
+            hud.style.top = (slot.el.offsetTop - 10) + 'px';
+            hud.innerHTML = `<div><strong>${def.name}</strong> <div class="small">Age ${Math.floor(p.age)}s / ${p.growTime}s</div></div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button class="btn" id="harv">Harvest</button>
+      <button class="btn" id="rm">Remove</button>
+    </div>
+    <div class="small" style="margin-top:8px">Health: ${Math.round(p.health)}%</div>
+    `;
+            $id('harv').addEventListener('click', () => { harvestSlot(slot.id); hud.style.display = 'none'; });
+            $id('rm').addEventListener('click', () => { slot.plant = null; renderPlantVisual(slot); hud.style.display = 'none'; pushLog('Plant removed.'); renderUI(); });
+        }
+
+        /* ------------------------------
+           Logging & notifications
+           ------------------------------ */
+        function pushLog(msg) {
+            const log = $id('log');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML = <div>[${time}] ${msg}</div> + log.innerHTML;
+        }
+
+        /* ------------------------------
+           Save / Load
+           ------------------------------ */
+        const SAVE_KEY = 'eco_harvest_save_v1';
+        function saveGame() {
+            const serial = {
+                money: game.money, day: game.day, dayTime: game.dayTime,
+                water: game.water, nutrients: game.nutrients, ph: game.ph,
+                pumpLevel: game.pumpLevel, tankSize: game.tankSize,
+                inventory: game.inventory, quests: game.quests, achievements: game.achievements,
+                slots: game.slots.map(s => ({ id: s.id, plant: s.plant ? { ...s.plant, age: s.plant.age } : null }))
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(serial));
+            pushLog('Game saved.');
+        }
+
+        function loadGame() {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (!raw) return;
+            try {
+                const s = JSON.parse(raw);
+                game.money = s.money; game.day = s.day; game.dayTime = s.dayTime;
+                game.water = s.water; game.nutrients = s.nutrients; game.ph = s.ph;
+                game.pumpLevel = s.pumpLevel; game.tankSize = s.tankSize;
+                game.inventory = s.inventory; game.quests = s.quests; game.achievements = s.achievements;
+                // restore slots
+                s.slots.forEach(ss => {
+                    const slot = game.slots.find(x => x.id == ss.id);
+                    if (slot) {
+                        slot.plant = ss.plant;
+                    }
+                });
+                pushLog('Loaded saved game.');
+            } catch (e) { console.error(e); pushLog('Failed to load save.'); }
+        }
+
+        /* ------------------------------
+           Helpers & game start
+           ------------------------------ */
+        function saveIfNeeded() {
+            if (game.settings.autosave) saveGame();
+        }
+        function onNewDay() {
+            // special daily events
+            pushLog(Day ${ game.day } started.);
+            // small market fluctuation
+            if (Math.random() < 0.15) { game.money += 5; pushLog('Market gave a minor subsidy +$5'); }
+            // challenge: sometimes lose plants due to pests
+            if (Math.random() < 0.05) {
+                const planted = game.slots.filter(s => s.plant);
+                if (planted.length) {
+                    const s = planted[Math.floor(Math.random() * planted.length)];
+                    s.plant.health -= 40; pushLog('A pest damaged a plant!');
+                }
+            }
+        }
+
+        function initDefaults() {
+            // seeds default if none
+            if (!game.inventory || !game.inventory.seeds) game.inventory = { seeds: { lettuce: 3 }, items: {} };
+            createSlots();
+            loadGame();
+            // render any existing plant visuals
+            game.slots.forEach(s => { if (s.plant) renderPlantVisual(s); });
+            // attach controls
+            document.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', (e) => {
+                const seed = e.target.getAttribute('data-buy');
+                plantFromInv(seed);
+            }));
+            document.querySelectorAll('[data-shop]').forEach(b => b.addEventListener('click', () => { }));
+            // quick controls via keyboard
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'r') { refillWater(); }
+                if (e.key === 'n') { addNutrient(); }
+                if (e.key === 's') { saveGame(); pushLog('Manual save'); }
+            });
+            // ph slider
+            $id('ph').addEventListener('input', (e) => { game.ph = parseFloat(e.target.value); $id('phVal').innerText = game.ph.toFixed(1); renderUI(); });
+            // claim quest
+            $id('claimBtn').addEventListener('click', () => {
+                if (game.quests.current.progress >= game.quests.current.goal.count) {
+                    game.money += game.quests.current.reward;
+                    pushLog(Quest complete! + $${ game.quests.current.reward });
+                    game.quests.current.progress = 0;
+                    // new quest simple rotation
+                    game.quests.current.goal = { type: 'harvest', seed: 'basil', count: 2 };
+                    game.quests.current.reward = 35;
+                    renderUI();
+                }
+            });
+            // clickable area for harvesting by double-click
+            document.getElementById('table').addEventListener('dblclick', (e) => {
+                const target = e.target.closest('.slot');
+                if (!target) return;
+                const id = parseInt(target.dataset.slot, 10);
+                harvestSlot(id);
+            });
+
+            renderUI();
+            startTick();
+        }
+
+        // initial injection of visuals for any empty slots
+        initDefaults();
+
+        // small demo: add some starter seeds if none
+        if (totalSeedCount() === 0) {
+            game.inventory.seeds.lettuce = 3;
+            game.inventory.seeds.basil = 1;
+            renderUI();
+        }
+
+        // utility: push an initial quick log
+        pushLog('EcoHarvest ready. Double-click a slot to harvest. Press R refill, N add nutrient, S save.');
+
+    </script>
+</body>
+
+</html>

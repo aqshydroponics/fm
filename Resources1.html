@@ -1,0 +1,318 @@
+<!-- Resources Section -->
+<section id="resources" aria-label="Hydroponics Resources" class="resources-section">
+    <div class="rs-header">
+        <h2>Hydroponics — Resources & Research</h2>
+        <p class="rs-sub">Search, filter, and explore curated research, guides, and media about hydroponics, aeroponics,
+            water use, growth rates, and NASA space trials.</p>
+        <div class="rs-controls">
+            <input id="rs-search" type="search" placeholder="Search resources (title, tag, summary)..." />
+            <select id="rs-filter">
+                <option value="all">All types</option>
+                <option value="research">Research / Review</option>
+                <option value="guides">Guides / Extension</option>
+                <option value="space">NASA / Space</option>
+                <option value="media">Media / News</option>
+            </select>
+            <button id="rs-export">Export CSV</button>
+        </div>
+    </div>
+
+    <div id="rs-list" class="rs-list"></div>
+
+    <div class="rs-footer">
+        <div id="rs-pagination" class="rs-pagination"></div>
+    </div>
+
+    <!-- Modal for full details -->
+    <div id="rs-modal" class="rs-modal" aria-hidden="true">
+        <div class="rs-modal-content">
+            <button class="rs-close" id="rs-close">✕</button>
+            <h3 id="modal-title"></h3>
+            <p id="modal-summary"></p>
+            <p><strong>Tags:</strong> <span id="modal-tags"></span></p>
+            <p><strong>Source:</strong> <a id="modal-link" href="#" target="_blank" rel="noopener noreferrer">Open
+                    source</a></p>
+            <p class="rs-cite" id="modal-cite"></p>
+            <div class="rs-modal-actions">
+                <button id="rs-copy-cite">Copy citation</button>
+                <button id="rs-open-source">Open source</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .resources-section {
+        font-family: Inter, system-ui, Arial;
+        padding: 28px;
+        background: #f7faf6;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    .rs-header h2 {
+        margin: 0 0 6px;
+        color: #234;
+        font-family: "Garamond", serif;
+    }
+
+    .rs-sub {
+        margin: 0 0 16px;
+        color: #47525a;
+    }
+
+    .rs-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    #rs-search {
+        padding: 10px 12px;
+        flex: 1;
+        min-width: 220px;
+        border-radius: 8px;
+        border: 1px solid #d7e0dc;
+    }
+
+    #rs-filter {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #d7e0dc;
+    }
+
+    #rs-export {
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #e6f0e9;
+        border: 1px solid #c8dfcf;
+        cursor: pointer;
+    }
+
+    .rs-list {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+
+    .rs-card {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #eef4ef;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .rs-card h4 {
+        margin: 0;
+        font-size: 16px;
+        color: #123;
+    }
+
+    .rs-card p {
+        margin: 0;
+        color: #546;
+        font-size: 13px;
+    }
+
+    .rs-tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .rs-tag {
+        background: #eef6f0;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: #236;
+    }
+
+    .rs-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .rs-btn {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #d7e0dc;
+        background: #fff;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .rs-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .rs-modal-content {
+        background: white;
+        width: min(760px, 95%);
+        padding: 18px;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .rs-close {
+        position: absolute;
+        right: 10px;
+        top: 8px;
+        background: transparent;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    .rs-cite {
+        font-size: 12px;
+        color: #666;
+        margin-top: 8px;
+    }
+
+    .rs-modal-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .rs-pagination {
+        margin-top: 14px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .rs-page {
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #e1e8e3;
+        cursor: pointer;
+        background: white;
+    }
+</style>
+
+<script>
+    const resources = [
+        { id: 1, title: "VEGGIE — Vegetable Production System (NASA)", summary: "NASA's Veggie plant growth system on the ISS; salads and leafy crops grown to study plant biology in microgravity.", url: "https://science.nasa.gov/mission/veggie/", tags: ["space", "NASA", "experiment"], citeText: "NASA Veggie mission page.", citeMark: "[ref:NASA Veggie]" },
+        { id: 2, title: "Growing Plants in Space — NASA overview (Advanced Plant Habitat)", summary: "NASA's Advanced Plant Habitat (APH) — a growth chamber with controlled lighting, sensors, and substrate used aboard the ISS.", url: "https://www.nasa.gov/exploration-research-and-technology/growing-plants-in-space/", tags: ["space", "NASA", "habitat"], citeText: "NASA APH overview.", citeMark: "[ref:NASA APH]" },
+
+        // كروت إضافية
+        { id: 11, title: "Nutrient Film Technique (NFT) Hydroponics", summary: "Overview of NFT channels — thin film of nutrient solution circulates over plant roots for efficient oxygen exchange.", url: "https://example.com/nft-hydroponics", tags: ["guides", "NFT", "hydroponics"], citeText: "NFT Hydroponics system overview.", citeMark: "[ref:NFT System]" },
+        { id: 12, title: "Deep Water Culture (DWC) Basics", summary: "Roots suspended directly in aerated nutrient solution. Popular beginner-friendly hydroponic method.", url: "https://example.com/dwc-basics", tags: ["guides", "DWC", "hydroponics"], citeText: "Deep Water Culture introduction.", citeMark: "[ref:DWC Basics]" },
+        { id: 13, title: "Vertical Farming & Space Optimization", summary: "How vertical stacking of hydroponic systems boosts yields in urban environments with limited space.", url: "https://example.com/vertical-farming", tags: ["research", "vertical", "urban"], citeText: "Vertical farming and hydroponics research.", citeMark: "[ref:Vertical Farming]" },
+        { id: 14, title: "Aeroponics — Mist-based Growing", summary: "Aeroponic systems deliver nutrients via fine mist to plant roots, increasing oxygen availability.", url: "https://example.com/aeroponics", tags: ["research", "aeroponics", "innovation"], citeText: "Aeroponic growth systems overview.", citeMark: "[ref:Aeroponics]" },
+        { id: 15, title: "Hydroponic Nutrient Solutions Guide", summary: "Practical guide on mixing and balancing nutrient solutions for leafy greens and fruiting plants.", url: "https://example.com/nutrient-guide", tags: ["guides", "nutrients", "farming"], citeText: "Nutrient guide for hydroponics.", citeMark: "[ref:Nutrients Guide]" }
+    ];
+
+    const PAGE_SIZE = 8;
+    let currentPage = 1;
+
+    function escapeHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function renderList(page = 1, filter = 'all', q = '') {
+        const rsList = document.getElementById('rs-list');
+        rsList.innerHTML = '';
+        let items = resources.slice();
+
+        if (filter !== 'all') items = items.filter(it => it.tags.includes(filter));
+        if (q.trim()) {
+            const qq = q.toLowerCase();
+            items = items.filter(it => it.title.toLowerCase().includes(qq) || it.summary.toLowerCase().includes(qq) || it.tags.join(' ').toLowerCase().includes(qq));
+        }
+
+        const total = items.length;
+        const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        currentPage = Math.min(page, pages);
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const paged = items.slice(start, start + PAGE_SIZE);
+
+        paged.forEach(it => {
+            const card = document.createElement('article');
+            card.className = 'rs-card';
+            card.innerHTML = `
+                <h4>${escapeHtml(it.title)}</h4>
+                <p>${escapeHtml(it.summary)}</p>
+                <div class="rs-tags">${it.tags.map(t => `<span class="rs-tag">${escapeHtml(t)}</span>`).join('')}</div>
+                <div class="rs-actions">
+                    <button class="rs-btn" onclick="openModal(${it.id})">View</button>
+                    <a class="rs-btn" href="${it.url}" target="_blank" rel="noopener noreferrer">Open</a>
+                    <button class="rs-btn" onclick="copyCitation(${it.id})">Copy citation</button>
+                </div>
+                <div style="font-size:12px;color:#6b7770;margin-top:8px">${it.citeMark} ${escapeHtml(it.citeText)}</div>
+            `;
+            rsList.appendChild(card);
+        });
+
+        renderPagination(pages);
+    }
+
+    function renderPagination(totalPages) {
+        const container = document.getElementById('rs-pagination');
+        container.innerHTML = '';
+        for (let p = 1; p <= totalPages; p++) {
+            const btn = document.createElement('button');
+            btn.className = 'rs-page';
+            btn.textContent = p;
+            if (p === currentPage) btn.style.fontWeight = '700';
+            btn.onclick = () => renderList(p, document.getElementById('rs-filter').value, document.getElementById('rs-search').value);
+            container.appendChild(btn);
+        }
+    }
+
+    function openModal(id) {
+        const it = resources.find(r => r.id === id);
+        if (!it) return;
+        document.getElementById('modal-title').textContent = it.title;
+        document.getElementById('modal-summary').textContent = it.summary;
+        document.getElementById('modal-tags').textContent = it.tags.join(', ');
+        document.getElementById('modal-link').href = it.url;
+        document.getElementById('modal-cite').textContent = `${it.citeMark} — ${it.citeText}`;
+        document.getElementById('rs-modal').style.display = 'flex';
+        document.getElementById('rs-modal').setAttribute('aria-hidden', 'false');
+
+        document.getElementById('rs-copy-cite').onclick = () => { navigator.clipboard.writeText(`${it.title} — ${it.url}\nCitation: ${it.citeMark} ${it.citeText}`); alert('Citation copied'); };
+        document.getElementById('rs-open-source').onclick = () => { window.open(it.url, '_blank'); };
+    }
+
+    document.getElementById('rs-close').addEventListener('click', () => { document.getElementById('rs-modal').style.display = 'none'; document.getElementById('rs-modal').setAttribute('aria-hidden', 'true'); });
+
+    document.getElementById('rs-search').addEventListener('input', (e) => renderList(1, document.getElementById('rs-filter').value, e.target.value));
+    document.getElementById('rs-filter').addEventListener('change', (e) => renderList(1, e.target.value, document.getElementById('rs-search').value));
+
+    document.getElementById('rs-export').addEventListener('click', () => {
+        const rows = [['Title', 'Summary', 'URL', 'Tags', 'Citation']].concat(resources.map(r => [r.title, r.summary, r.url, r.tags.join('|'), r.citeMark + ' ' + r.citeText]));
+        const csv = rows.map(r => r.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hydroponics-resources.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    });
+
+    function copyCitation(id) {
+        const it = resources.find(r => r.id === id);
+        if (!it) return;
+        const text = `${it.title} — ${it.url}\nCitation: ${it.citeMark} ${it.citeText}`;
+        navigator.clipboard.writeText(text).then(() => alert('Citation copied to clipboard'));
+    }
+
+    renderList();
+</script>

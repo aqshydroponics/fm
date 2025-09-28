@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hydroponic 3D Model</title>
+  <style>
+    :root{
+      --bg:#f9fafb; /* light background */
+      --card:#ffffff;
+      --accent:#06b6d4; /* teal */
+      --glass: rgba(0,0,0,0.04);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%); color:#1f2937;
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+
+    .wrapper{width:100%;max-width:1000px}
+
+    .title{
+      text-align:center; margin-bottom:18px;
+      font-size:28px; font-weight:700; letter-spacing:0.4px;
+      display:flex; align-items:center; gap:12px; justify-content:center;
+    }
+    .title .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 6px 18px rgba(6,182,212,0.28)}
+
+    .card{
+      background: var(--card);
+      border:1px solid rgba(0,0,0,0.06); padding:18px; border-radius:14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    /* video container */
+    .video-box{
+      width:100%; aspect-ratio:16/9; background:var(--glass); border-radius:10px;
+      overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative;
+      transition:transform .35s ease, box-shadow .35s ease;
+    }
+    .video-box:hover{transform:translateY(-6px); box-shadow:0 14px 30px rgba(0,0,0,0.15)}
+
+    video, iframe{width:100%; height:100%; border:0; display:block; object-fit:cover;}
+
+    .controls-row{display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-top:12px}
+    .btn{background:#f3f4f6;border:1px solid rgba(0,0,0,0.08); color:#1f2937;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn:hover{background:#e5e7eb}
+
+    /* small caption */
+    .caption{font-size:13px; opacity:0.8; margin-top:10px}
+
+    /* responsive tweaks */
+    @media (max-width:520px){
+      .title{font-size:20px}
+      .btn{padding:8px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="title"><span class="dot" aria-hidden></span>Hydroponic 3D Model</div>
+
+    <div class="card">
+      <div class="video-box" id="videoBox">
+        <video id="demoVideo" controls preload="metadata">
+          <source src="D:\HHH.html\3D MODE .mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <!--
+        Alternative: to use a YouTube embed instead of the local <video>, comment out the <video> block above and
+        uncomment the iframe below and replace VIDEO_ID with your YouTube video id.
+
+        <iframe src="https://www.youtube.com/embed/VIDEO_ID" title="Hydroponic 3D Model" allowfullscreen></iframe>
+        -->
+      </div>
+
+      <div class="controls-row">
+        <button class="btn" id="toggle3D">Toggle 3D Tilt</button>
+        <button class="btn" id="pictureInPicture">Picture-in-Picture</button>
+      </div>
+
+      <div class="caption">مربع فيديو بسيط — استبدل <code>assets/hydroponic.mp4</code> بمسار الفيديو الخاص بك أو استخدم تضمين يوتيوب.</div>
+    </div>
+  </div>
+
+  <script>
+    const videoBox = document.getElementById('videoBox');
+    const toggle3D = document.getElementById('toggle3D');
+    let enabled = false;
+
+    toggle3D.addEventListener('click', ()=>{
+      enabled = !enabled;
+      toggle3D.textContent = enabled ? '3D Tilt: ON' : 'Toggle 3D Tilt';
+      if(enabled){
+        videoBox.addEventListener('mousemove', handleTilt);
+        videoBox.addEventListener('mouseleave', resetTilt);
+      } else {
+        videoBox.removeEventListener('mousemove', handleTilt);
+        videoBox.removeEventListener('mouseleave', resetTilt);
+        resetTilt();
+      }
+    });
+
+    function handleTilt(e){
+      const rect = videoBox.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const rx = (y) * 6;
+      const ry = (x) * -6;
+      videoBox.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+    }
+    function resetTilt(){ videoBox.style.transform = ''; }
+
+    const pipBtn = document.getElementById('pictureInPicture');
+    const video = document.getElementById('demoVideo');
+    pipBtn.addEventListener('click', async ()=>{
+      try{
+        if(document.pictureInPictureElement){
+          await document.exitPictureInPicture();
+        } else {
+          if(video.requestPictureInPicture){
+            await video.requestPictureInPicture();
+          } else {
+            alert('Picture-in-Picture not supported in this browser.');
+          }
+        }
+      }catch(err){ console.error(err); alert('حدث خطأ: ' + err.message); }
+    });
+  </script>
+</body>
+</html>
